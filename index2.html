@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Викторина по ядерной физике</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 60%;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .answers {
+            list-style-type: none;
+            padding: 0;
+        }
+        .answers li {
+            margin: 10px 0;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #3d3d3d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #000000;
+        }
+        #result {
+            display: none;
+            text-align: center;
+        }
+        .timer {
+            font-size: 20px;
+            text-align: center;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Викторина по ядерной физике</h1>
+
+    <!-- Таймер -->
+    <div class="timer" id="timer">Время: 10 секунд</div>
+
+    <div id="quiz">
+        <!-- Вопросы -->
+        <div class="question" id="question-container">
+            <!-- Вопросы будут загружаться динамически через JavaScript -->
+        </div>
+        
+        <button onclick="calculateScore()">Показать результат</button>
+    </div>
+
+    <div id="result">
+        <h2>Ваш результат</h2>
+        <p>Правильных ответов: <span id="score"></span> из 15</p>
+    </div>
+</div>
+
+<!-- Звуки -->
+<audio id="correct-sound" src="c:\Users\user\Desktop\ib project 2024-2025\web\npm\correct-6033.mp3" preload="auto"></audio>
+<audio id="incorrect-sound" src="c:\Users\user\Desktop\ib project 2024-2025\web\npm\wrong-38598.mp3" preload="auto"></audio>
+<audio id="time-up-sound" src="time-up.mp3" preload="auto"></audio>
+
+<script>
+    let currentQuestionIndex = 0;
+    let score = 0;
+    const questions = [
+        {
+            question: "1. Кто открыл явление радиоактивности?",
+            options: ["Антуан Лавуазье", "Мария Кюри", "Беккерель", "Эрнест Резерфорд"],
+            correct: 2
+        },
+        {
+            question: "2. Как называется процесс, при котором атом теряет или приобретает нейтрон?",
+            options: ["Квантование", "Ядерный синтез", "Нейтронная активация", "Изотопное изменение"],
+            correct: 3
+        },
+        {
+            question: "3. Какой элемент был первым, подвергшимся ядерной реакции в ускорителе?",
+            options: ["Уран", "Литий", "Тритий", "Гелий"],
+            correct: 1
+        },
+        {
+            question: "4. Что такое радиоактивный распад?",
+            options: ["Процесс, в котором ядро делится на два меньших", "Процесс высвобождения энергии в виде света", "Процесс трансмутации ядра одного элемента в другой", "Процесс потери энергии атомом"],
+            correct: 2
+        },
+        {
+            question: "5. Что такое половинный период радиоактивного вещества?",
+            options: ["Время, через которое вещества превращаются в стабильное состояние", "Время, через которое половина вещества распадается", "Время, через которое весь материал распадается", "Время, в течение которого происходит полный цикл распада"],
+            correct: 1
+        },
+        {
+            question: "6. Какой элемент был использован в первой атомной бомбе?",
+            options: ["Уран", "Плутоний", "Литий", "Гелий"],
+            correct: 0
+        },
+        {
+            question: "7. Что является основным топливом для ядерных реакторов?",
+            options: ["Уран-238", "Плутоний-239", "Тритий", "Гелий"],
+            correct: 0
+        },
+        {
+            question: "8. Какая частица используется для инициирования деления атомных ядер?",
+            options: ["Протон", "Нейтрон", "Электрон", "Фотон"],
+            correct: 1
+        },
+        {
+            question: "9. Как называется процесс слияния атомных ядер?",
+            options: ["Ядерный синтез", "Ядерный распад", "Атомная бомба", "Нейтронный распад"],
+            correct: 0
+        },
+        {
+            question: "10. Какой элемент активно используется в термоядерных реакторах?",
+            options: ["Уран-235", "Гелий-3", "Тритий", "Калифорний-252"],
+            correct: 2
+        },
+        {
+            question: "11. Что такое критическая масса вещества?",
+            options: ["Минимальная масса вещества, необходимая для устойчивой реакции деления", "Максимальная масса вещества, с которой можно проводить реакцию", "Масса вещества, необходимая для реакции с другой частицей", "Масса вещества, требующая постоянного контроля"],
+            correct: 0
+        },
+        {
+            question: "12. Что такое нейтронная активация?",
+            options: ["Процесс, в котором нейтроны приводят к делению атомных ядер", "Процесс, при котором нейтроны возбуждают атомы", "Процесс поглощения нейтрона элементом, что приводит к изменению его свойств", "Процесс превращения атомов в изотопы"],
+            correct: 2
+        },
+        {
+            question: "13. Какой элемент используется в ядерных боеголовках?",
+            options: ["Плутоний-239", "Тритий", "Никель", "Золото"],
+            correct: 0
+        },
+        {
+            question: "14. Кто из ученых впервые обнаружил ядерное деление?",
+            options: ["Мария Кюри", "Генрих Герц", "Лиза Мейтнер", "Эрнест Резерфорд"],
+            correct: 2
+        },
+        {
+            question: "15. Что является основным источником энергии на Солнце?",
+            options: ["Ядерный синтез", "Ядерный распад", "Гравитация", "Световая энергия"],
+            correct: 0
+        }
+    ];
+
+    function loadQuestion() {
+        const questionData = questions[currentQuestionIndex];
+        const questionHTML = `
+            <p>${questionData.question}</p>
+            <ul class="answers">
+                ${questionData.options.map((option, index) => `
+                    <li><input type="radio" name="q${currentQuestionIndex}" value="${index}"> ${option}</li>
+                `).join('')}
+            </ul>
+        `;
+        document.getElementById('question-container').innerHTML = questionHTML;
+        startTimer();
+    }
+
+    function startTimer() {
+        let timeLeft = 10;
+        const timerElement = document.getElementById('timer');
+        const timerInterval = setInterval(() => {
+            timerElement.textContent = `Время: ${timeLeft} секунд`;
+            timeLeft--;
+
+            if (timeLeft < 0) {
+                clearInterval(timerInterval);
+                document.getElementById("time-up-sound").play(); // Воспроизведение звука по окончании времени
+                nextQuestion();
+            }
+        }, 1000);
+    }
+
+    function nextQuestion() {
+        const selectedOption = document.querySelector(`input[name="q${currentQuestionIndex}"]:checked`);
+        if (selectedOption && parseInt(selectedOption.value) === questions[currentQuestionIndex].correct) {
+            score++;
+            document.getElementById("correct-sound").play(); // Воспроизведение звука для правильного ответа
+        } else if (selectedOption) {
+            document.getElementById("incorrect-sound").play(); // Воспроизведение звука для неправильного ответа
+        }
+
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('quiz').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('score').textContent = score;
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
